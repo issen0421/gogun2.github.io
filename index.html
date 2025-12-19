@@ -52,7 +52,7 @@
     <p class="description">入力した単語の「すべての文字」を含んでいる語群を表示します</p>
 
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="ひらがなで入力" oninput="search()">
+        <input type="text" id="searchInput" placeholder="ひらがなorアルファベットを入力" oninput="search()">
         
         <div class="options">
             <label class="checkbox-label">
@@ -68,10 +68,23 @@
 </div>
 
 <script>
-    // データ（前回修正済み）
+    // データ（ユーザー提供の最新版）
     const myDataGroups = [
-    { "groupName": "四季", "words": ["はる", "なつ", "あき", "ふゆ"] },
+    { "groupName": "角", "words": ["かど", "つの", "かく"] },
+    { "groupName": "空", "words": ["そら", "から"] },
+    { "groupName": "主", "words": ["ぬし", "あるじ"] },
+    { "groupName": "紅", "words": ["べに", "くれない"] },
+    { "groupName": "頭", "words": ["あたま", "かしら"] },
+    { "groupName": "弾く", "words": ["ひく", "はじく"] },
+    { "groupName": "辛い", "words": ["からい", "つらい"] },
+    { "groupName": "開く", "words": ["あく", "ひらく"] },
     { "groupName": "色紙", "words": ["しきし", "いろがみ"] },
+    { "groupName": "二重", "words": ["にじゆう", "ふたえ"] },
+    { "groupName": "三重", "words": ["さんじゆう", "みえ"] },
+    { "groupName": "変化", "words": ["へんか", "へんげ"] },
+    { "groupName": "金色", "words": ["きんいろ", "こんじき"] },
+    { "groupName": "翡翠", "words": ["ひすい", "かわせみ"] },
+    { "groupName": "金星", "words": ["きんせい", "きんぼし"] },
     { "groupName": "見物", "words": ["みもの", "けんぶつ"] },
     { "groupName": "風車", "words": ["かざぐるま", "ふうしや"] },
     { "groupName": "紅葉", "words": ["こうよう", "もみじ"] },
@@ -123,6 +136,7 @@
     { "groupName": "綿アメ", "words": ["わたあめ", "わたがし"] },
     { "groupName": "ミス", "words": ["ごじ", "だつじ"] },
     { "groupName": "複数", "words": ["しんりん", "かえん"] },
+    { "groupName": "大人 夫人", "words": ["おとな", "ふじん"] },
     { "groupName": "肉", "words": ["ちきん", "びーふ", "ぽーく"] },
     { "groupName": "金", "words": ["こうか", "しへい", "かへい"] },
     { "groupName": "足八本", "words": ["おくとぱす", "すぱいだー"] },
@@ -163,6 +177,7 @@
     { "groupName": "桃太郎", "words": ["いぬ", "さる", "きじ", "ももたろう"] },
     { "groupName": "桃太郎", "words": ["しばかり", "せんたく", "おにたいじ"] },
     { "groupName": "桃太郎", "words": ["もも", "どんぶらこ"] },
+    { "groupName": "よく見る", "words": ["むしめがね(虫)", "ぼうえんきよう(月)"] },
     { "groupName": "柄", "words": ["すとらいぷ", "ぼーだー", "ちえつく"] },
     { "groupName": "表紙", "words": ["ひようし", "せびようし", "うらびようし"] },
     { "groupName": "大きさ", "words": ["だい", "ちゆう", "しよう"] },
@@ -170,6 +185,7 @@
     { "groupName": "学校", "words": ["しよう", "ちゆう", "こう", "だい"] },
     { "groupName": "月", "words": ["まんげつ", "はんげつ", "しんげつ"] },
     { "groupName": "月", "words": ["たいよう", "つき", "まんげつ"] },
+    { "groupName": "月", "words": ["うす", "きね", "うさぎ", "もち"] },
     { "groupName": "寿司", "words": ["ねた", "わさび", "しやり", "すし"] },
     { "groupName": "植物", "words": ["ね", "くき", "はな", "は"] },
     { "groupName": "点", "words": ["くてん", "だくてん", "とうてん", "はんだくてん"] },
@@ -184,7 +200,9 @@
     { "groupName": "山", "words": ["とざん", "とうちよう", "げざん"] },
     { "groupName": "整列", "words": ["きりつ", "れい", "ちやくせき"] },
     { "groupName": "報連相", "words": ["ほうこく", "れんらく", "そうだん"] },
+    { "groupName": "□", "words": ["くち", "ひ", "め", "た", "しな"] },
     { "groupName": "立方体", "words": ["てん", "へん", "めん"] },
+    { "groupName": "直方体", "words": ["たかさ", "よこはば", "おくゆき"] },
     { "groupName": "ジャンケン", "words": ["ぐー", "ちよき", "ぱー"] },
     { "groupName": "ジャンケン", "words": ["いし", "かみ", "はさみ"] },
     { "groupName": "勝敗", "words": ["るーず", "ういん", "どろー"] },
@@ -309,6 +327,7 @@
     { "groupName": "チェス", "words": ["きんぐ", "くいーん", "るーく", "びしよつぷ", "ぽーん", "ないと"] },
     { "groupName": "旧暦", "words": ["むつき", "きさらぎ", "やよい", "うづき", "さつき", "みなづき", "ふみづき", "はづき", "ながつき", "かんなづき", "しもつき", "しわす"] },
     { "groupName": "祝日", "words": ["がんじつ", "せいじんのひ", "けんこくきねんのひ(けんこくきねんび)", "てんのうたんじょうび", "しゅんぶんのひ", "しょうわのひ", "けんぽうきねんび", "みどりのひ", "こどものひ", "うみのひ", "やまのひ", "けいろうのひ", "しゅうぶんのひ", "すぽーつのひ", "ぶんかのひ", "きんろうかんしゃのひ"] },
+    { "groupName": "日", "words": ["ばれんたいんでー", "ほわいとでー"] },
     { "groupName": "元号", "words": ["めいじ", "たいしよう", "しようわ", "へいせい", "れいわ"] },
     { "groupName": "都道府県", "words": ["ほつかいどう", "あおもり", "いわて", "みやぎ", "あきた", "やまがた", "ふくしま", "いばらき", "とちぎ", "ぐんま", "さいたま", "ちば", "とうきよう", "かながわ", "にいがた", "とやま", "いしかわ", "ふくい", "やまなし", "ながの", "ぎふ", "しずおか", "あいち", "みえ", "しが", "きようと", "おおさか", "ひようご", "なら", "わかやま", "とつとり", "しまね", "おかやま", "ひろしま", "やまぐち", "とくしま", "かがわ", "えひめ", "こうち", "ふくおか", "さが", "ながさき", "くまもと", "おおいた", "みやざき", "かごしま", "おきなわ"] },
     { "groupName": "違県庁所在地", "words": ["さつぽろ", "もりおか", "せんだい", "みと", "うつのみや", "まえばし", "さいたま", "よこはま", "こうふ", "かなざわ", "なごや", "おおつ", "つ", "こうべ", "まつえ", "たかまつ", "まつやま", "なは"] },
@@ -349,6 +368,7 @@
     { "groupName": "似", "words": ["ふりよく", "じゆうりよく", "じりよく"] },
     { "groupName": "似", "words": ["はんばーぐ", "はんばーがー"] },
     { "groupName": "似", "words": ["あるみかん", "すちーるかん"] },
+    { "groupName": "似", "words": ["かぶ", "だいこん"] },
     { "groupName": "似", "words": ["さんぐらす", "めがね"] },
     { "groupName": "似", "words": ["まる", "ばつ", "おー", "えつくす"] },
     { "groupName": "似", "words": ["ぷらす", "まいなす", "じゆう", "いち"] },
@@ -362,20 +382,24 @@
     { "groupName": "似", "words": ["きゆーぶ", "だいす", "ぶろつく", "りつぽうたい"] },
     { "groupName": "似", "words": ["りーち", "びんご"] },
     { "groupName": "似", "words": ["ぴーち", "はーと"] },
+    { "groupName": "似", "words": ["なか(中)", "くし(串)"] },
     { "groupName": "似", "words": ["いご", "おせろ"] },
     { "groupName": "似", "words": ["もざいく", "ぼかし"] },
     { "groupName": "似", "words": ["うきわ", "ふらふーぷ"] },
     { "groupName": "似", "words": ["おんぶ", "だつこ"] },
     { "groupName": "似", "words": ["えすかれーたー", "えれべーたー"] },
     { "groupName": "似", "words": ["はせん", "なみせん"] },
+    { "groupName": "似", "words": ["しようちくばい", "しようちゆうだい"] },
     { "groupName": "似", "words": ["ういんく", "まばたき"] },
     { "groupName": "似", "words": ["ちへいせん", "すいへいせん"] },
     { "groupName": "似", "words": ["ますたーど", "かすたーど"] },
     { "groupName": "似", "words": ["まよねーず", "けちやつぷ"] },
     { "groupName": "似", "words": ["はんまー", "かなづち", "とんかち"] },
+    { "groupName": "似", "words": ["すとろー", "まどらー"] },
     { "groupName": "似", "words": ["ふじさん", "ぷりん"] },
     { "groupName": "似", "words": ["ゆきだるま", "かがみもち"] },
     { "groupName": "似", "words": ["しめすへん", "ころもへん"] },
+    { "groupName": "似", "words": ["しーそー", "てんびん"] },
     { "groupName": "対義語", "words": ["おもて", "うら"] },
     { "groupName": "対義語", "words": ["まえまわり", "さかあがり"] },
     { "groupName": "対義語", "words": ["おおもじ", "こもじ"] },
@@ -706,7 +730,7 @@
 
                 // チェックボックスがONの場合、両方を清音化して比較
                 if (ignoreDakuten) {
-                    targetChar = toSeion(originalChar);
+                    targetChar = toSeion(targetChar);
                     targetTextToSearch = toSeion(combinedText);
                 }
                 
@@ -722,6 +746,10 @@
                 nearMatches.push({ group: group, missing: missingChars });
             }
         });
+
+        // ★ソート処理：単語数が少ない順
+        perfectMatches.sort((a, b) => a.group.words.length - b.group.words.length);
+        nearMatches.sort((a, b) => a.group.words.length - b.group.words.length);
 
         // 結果の表示処理（完全一致 → 惜しい の順）
         const allMatches = [...perfectMatches, ...nearMatches];
