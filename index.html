@@ -42,7 +42,7 @@
         .no-result { grid-column: 1 / -1; padding: 50px; color: #bdc3c7; font-size: 18px; }
 
         /* 管理画面エリア */
-        .manage-toggle { margin-top: 20px; cursor: pointer; color: #3498db; text-decoration: underline; font-size: 14px; }
+        .manage-toggle { margin-top: 20px; cursor: pointer; color: #3498db; text-decoration: underline; font-size: 14px; user-select: none; }
         .manage-area { display: none; margin-top: 20px; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; }
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; }
@@ -76,7 +76,7 @@
         <div id="resultCount" class="result-count">文字を入力してください</div>
     </div>
 
-    <div class="manage-toggle" onclick="toggleManageArea()">▼ 語群の登録・編集を開く</div>
+    <div id="toggleBtn" class="manage-toggle" onclick="toggleManageArea()">▼ 語群の登録・編集を開く</div>
 
     <div id="manageArea" class="manage-area">
         <h3>新しい語群を追加</h3>
@@ -102,15 +102,9 @@
 
 <script>
     // デフォルトデータ（初期状態）
-    // もし間違って消しても「初期データに戻す」でこれが復活します
     const defaultData = [
-        { "groupName": "四季", "words": ["はる", "なつ", "あき", "ふゆ"] },
-        { "groupName": "時間", "words": ["SECOND", "MINUTE", "HOUR", "DAY", "WEEK", "YEAR"] },
-        { "groupName": "朝夜", "words": ["MORNING", "EVENING"] },
-        { "groupName": "食", "words": ["BREAKFAST", "LUNCH", "DINNER"] },
-        // ... (ここに以前の長いデータを入れておくことも可能ですが、
-        // 今回はシンプルにするため、必要であれば以前のデータをここにコピペしてください。
-        // 今は空の状態からスタートでも、ご自身で追加していけばOKです)
+        // 必要に応じてここに初期データを入れてください
+        { "groupName": "四季", "words": ["はる", "なつ", "あき", "ふゆ"] }
     ];
 
     // アプリケーションで使用するデータ
@@ -217,7 +211,15 @@
     // 管理画面の表示切替
     function toggleManageArea() {
         const area = document.getElementById('manageArea');
-        area.style.display = (area.style.display === 'block') ? 'none' : 'block';
+        const btn = document.getElementById('toggleBtn');
+        
+        if (area.style.display === 'block') {
+            area.style.display = 'none';
+            btn.innerText = '▼ 語群の登録・編集を開く';
+        } else {
+            area.style.display = 'block';
+            btn.innerText = '▲ 語群の登録・編集を閉じる';
+        }
     }
 
     // 文字の正規化（検索用）
