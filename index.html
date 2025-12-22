@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>語群検索システム（管理機能付き）</title>
+    <title>語群検索システム</title>
     <style>
         body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; background: #f8f9fa; color: #333; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 800px; width: 100%; text-align: center; }
@@ -12,8 +12,8 @@
         
         /* 検索エリア */
         .search-box { position: sticky; top: 10px; z-index: 100; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box; }
-        input[type="text"], textarea { width: 90%; padding: 15px; font-size: 16px; border: 2px solid #dfe6e9; border-radius: 10px; outline: none; transition: border-color 0.3s; }
-        input[type="text"]:focus, textarea:focus { border-color: #3498db; }
+        input[type="text"] { width: 90%; padding: 15px; font-size: 16px; border: 2px solid #dfe6e9; border-radius: 10px; outline: none; transition: border-color 0.3s; }
+        input[type="text"]:focus { border-color: #3498db; }
         
         .options { margin-top: 15px; display: flex; justify-content: center; gap: 20px; font-size: 14px; color: #555; }
         .checkbox-label { display: flex; align-items: center; cursor: pointer; user-select: none; }
@@ -35,37 +35,22 @@
         .word-list { display: flex; flex-wrap: wrap; gap: 8px; }
         .word-item { background: #ebf5fb; color: #2980b9; padding: 4px 12px; border-radius: 6px; font-size: 18px; font-weight: bold; }
         
-        /* ▼▼▼ 追加したスタイル（ハイライト） ▼▼▼ */
+        /* ハイライト（赤字） */
         .highlight { color: #e74c3c; font-weight: 900; text-decoration: underline; }
-        /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
 
         .badge { position: absolute; top: 10px; right: 10px; font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; font-weight: bold; }
         .badge-perfect { background: #27ae60; }
         .badge-near { background: #f39c12; }
         .missing-info { font-size: 11px; color: #e67e22; margin-top: 8px; font-style: italic; }
         .no-result { grid-column: 1 / -1; padding: 50px; color: #bdc3c7; font-size: 18px; }
-
-        /* 管理画面エリア */
-        .manage-toggle { margin-top: 20px; cursor: pointer; color: #3498db; text-decoration: underline; font-size: 14px; user-select: none; }
-        .manage-area { display: none; margin-top: 20px; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
-        .btn-add { background-color: #27ae60; width: 100%; font-size: 16px; }
-        .btn-delete { background-color: #e74c3c; padding: 5px 10px; font-size: 12px; margin-left: 10px; }
-        .btn-reset { background-color: #95a5a6; margin-top: 20px; font-size: 12px; }
-        
-        .data-list { max-height: 300px; overflow-y: auto; text-align: left; border-top: 1px solid #eee; margin-top: 15px; padding-top: 15px; }
-        .data-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
-        .data-content { font-size: 14px; }
-        .data-sub { font-size: 11px; color: #888; display: block; margin-top: 2px;}
+        .loading { grid-column: 1 / -1; color: #3498db; font-weight: bold; padding: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>語群検索システム</h1>
-    <p class="description">入力した単語の「すべての文字」を含んでいる語群を表示します</p>
+    <p class="description">スプレッドシート連動版</p>
 
     <div class="search-box">
         <input type="text" id="searchInput" placeholder="ひらがなorアルファベットを入力" oninput="search()">
@@ -77,156 +62,50 @@
             </label>
         </div>
 
-        <div id="resultCount" class="result-count">文字を入力してください</div>
-    </div>
-
-    <div id="toggleBtn" class="manage-toggle" onclick="toggleManageArea()">▼ 語群の登録・編集を開く</div>
-
-    <div id="manageArea" class="manage-area">
-        <h3>新しい語群を追加</h3>
-        <div class="input-group">
-            <label>語群名（ジャンル）</label>
-            <input type="text" id="newGroupName" placeholder="例：四季">
-        </div>
-        <div class="input-group">
-            <label>単語（スペースか読点「、」で区切る）</label>
-            <textarea id="newGroupWords" rows="3" placeholder="例：はる なつ あき ふゆ"></textarea>
-        </div>
-        <button class="btn btn-add" onclick="addNewGroup()">追加する</button>
-
-        <h3>登録済みリスト (<span id="dataCount">0</span>件)</h3>
-        <div id="dataList" class="data-list">
-            </div>
-        
-        <button class="btn btn-reset" onclick="resetData()">初期データに戻す</button>
+        <div id="resultCount" class="result-count">データを読み込み中...</div>
     </div>
 
     <div id="resultArea" class="result-area"></div>
 </div>
 
 <script>
-    // デフォルトデータ（初期状態）
-    const defaultData = [
-        // 必要に応じてここにデータを貼り付けてください
-        { "groupName": "四季", "words": ["はる", "なつ", "あき", "ふゆ"] }
-    ];
+    // ▼▼▼ ここにGASのウェブアプリURLを貼り付けてください ▼▼▼
+    const GAS_URL = "ここにGASのウェブアプリURLを貼り付けてください"; 
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-    // アプリケーションで使用するデータ
     let appData = [];
 
-    // 起動時の処理
+    // 起動時にデータを取得
     window.onload = function() {
         loadData();
-        search(); // 初回検索（もし入力があれば）
     };
 
-    // データの読み込み（Local Storage -> 変数）
-    function loadData() {
-        const storedData = localStorage.getItem('wordSearchData');
-        if (storedData) {
-            appData = JSON.parse(storedData);
-        } else {
-            // 保存データがない場合はデフォルトデータを使用
-            appData = JSON.parse(JSON.stringify(defaultData));
-        }
-        updateManageList();
-    }
-
-    // データの保存（変数 -> Local Storage）
-    function saveData() {
-        localStorage.setItem('wordSearchData', JSON.stringify(appData));
-        updateManageList();
-        search(); // 保存したら検索結果も更新
-        alert("保存しました！");
-    }
-
-    // 新しいグループを追加
-    function addNewGroup() {
-        const name = document.getElementById('newGroupName').value.trim();
-        const wordsStr = document.getElementById('newGroupWords').value.trim();
-
-        if (!name || !wordsStr) {
-            alert("語群名と単語を入力してください");
-            return;
-        }
-
-        // 全角スペースや読点を区切り文字として配列化
-        const words = wordsStr.split(/[\s,、]+/).filter(w => w.length > 0);
-
-        if (words.length === 0) {
-            alert("有効な単語がありません");
-            return;
-        }
-
-        // データ追加
-        appData.push({
-            groupName: name,
-            words: words
-        });
-
-        // フォームをクリア
-        document.getElementById('newGroupName').value = "";
-        document.getElementById('newGroupWords').value = "";
-
-        saveData();
-    }
-
-    // グループの削除
-    function deleteGroup(index) {
-        if (confirm("この語群を削除しますか？")) {
-            appData.splice(index, 1);
-            saveData();
-        }
-    }
-
-    // 初期化
-    function resetData() {
-        if (confirm("全ての登録データを削除し、初期状態に戻しますか？")) {
-            appData = JSON.parse(JSON.stringify(defaultData));
-            saveData();
-        }
-    }
-
-    // 管理画面のリスト更新
-    function updateManageList() {
-        const listEl = document.getElementById('dataList');
-        const countEl = document.getElementById('dataCount');
+    // スプレッドシートからデータを取得する関数
+    async function loadData() {
+        const countEl = document.getElementById('resultCount');
+        const resultArea = document.getElementById('resultArea');
         
-        listEl.innerHTML = "";
-        countEl.innerText = appData.length;
+        countEl.innerText = "スプレッドシートからデータを読み込んでいます...";
+        resultArea.innerHTML = '<div class="loading">読み込み中...</div>';
 
-        // 新しいものが上に来るように逆順で表示
-        appData.slice().reverse().forEach((group, revIndex) => {
-            const realIndex = appData.length - 1 - revIndex;
+        try {
+            const response = await fetch(GAS_URL);
+            if (!response.ok) {
+                throw new Error("ネットワーク応答エラー");
+            }
+            appData = await response.json();
             
-            const div = document.createElement('div');
-            div.className = 'data-item';
-            div.innerHTML = `
-                <div class="data-content">
-                    <strong>${group.groupName}</strong>
-                    <span class="data-sub">${group.words.join(' / ')}</span>
-                </div>
-                <button class="btn btn-delete" onclick="deleteGroup(${realIndex})">削除</button>
-            `;
-            listEl.appendChild(div);
-        });
-    }
-
-    // 管理画面の表示切替
-    function toggleManageArea() {
-        const area = document.getElementById('manageArea');
-        const btn = document.getElementById('toggleBtn');
-        
-        if (area.style.display === 'block') {
-            area.style.display = 'none';
-            btn.innerText = '▼ 語群の登録・編集を開く';
-        } else {
-            area.style.display = 'block';
-            btn.innerText = '▲ 語群の登録・編集を閉じる';
+            countEl.innerText = `読み込み完了（全${appData.length}件）。文字を入力してください。`;
+            resultArea.innerHTML = ""; // ロード表示を消す
+            search(); // すでに入力がある場合に備えて検索実行
+        } catch (error) {
+            console.error(error);
+            countEl.innerText = "データの読み込みに失敗しました。";
+            resultArea.innerHTML = `<div class="no-result" style="color:red">エラー: データが取得できませんでした。<br>URLが正しいか、GASがデプロイされているか確認してください。</div>`;
         }
     }
 
-    // 文字の正規化（検索用）
+    // 文字の正規化（濁点・半濁点・拗音の除去）
     function normalizeString(str) {
         let res = str.normalize('NFD').replace(/[\u3099\u309A]/g, "");
         const smallToLarge = {
@@ -236,7 +115,7 @@
         return res.split('').map(char => smallToLarge[char] || char).join('');
     }
 
-    // ★★★ここが新機能★★★ ハイライト用のHTML生成関数
+    // ハイライト用のHTML生成関数
     function createHighlightedHtml(word, inputChars, looseMode) {
         let html = "";
         for (let char of word) {
@@ -259,7 +138,6 @@
             }
             
             if (isMatch) {
-                // マッチしたら<span>タグで囲んで赤くする
                 html += `<span class="highlight">${char}</span>`;
             } else {
                 html += char;
@@ -277,8 +155,11 @@
         
         resultArea.innerHTML = "";
 
+        // データがまだロードされていない場合は何もしない
+        if (appData.length === 0) return;
+
         if (!input) {
-            resultCount.innerText = "文字を入力してください";
+            resultCount.innerText = `文字を入力してください（全${appData.length}語群）`;
             return;
         }
 
@@ -287,7 +168,11 @@
         let nearMatches = [];
 
         appData.forEach(group => {
-            const combinedText = group.words.join("");
+            // スプレッドシートのデータによってはwordsが文字列のままの場合があるので配列化を確認
+            // (GAS側で配列にしていますが、念の為)
+            let wordsArray = Array.isArray(group.words) ? group.words : [];
+            
+            const combinedText = wordsArray.join("");
             
             const missingChars = inputChars.filter(originalChar => {
                 let targetChar = originalChar.toLowerCase();
@@ -322,7 +207,6 @@
             const badgeClass = isPerfect ? 'badge-perfect' : 'badge-near';
             const badgeText = isPerfect ? '揃いました！' : 'あと1文字！';
             
-            // ★ハイライト処理を適用して単語リストを表示★
             const wordsHtml = group.words.map(w => {
                 const highlighted = createHighlightedHtml(w, inputChars, looseMode);
                 return `<span class="word-item">${highlighted}</span>`;
