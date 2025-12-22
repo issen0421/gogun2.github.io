@@ -1,36 +1,147 @@
-<script>
-    // ▼▼▼ ここにGASのウェブアプリURLを貼り付けてください ▼▼▼
-    const GAS_URL = "https://script.google.com/a/macros/baton8.com/s/AKfycbyJW0PvxMs8wzG6YiW5XCmIWqikwCcwPCfPw2bv1S9RD3pDFLwlE7xviaeT_1X5b8ewDQ/exec"; 
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語群検索システム（管理機能付き）</title>
+    <style>
+        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; background: #f8f9fa; color: #333; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 800px; width: 100%; text-align: center; }
+        h1 { color: #2c3e50; margin-bottom: 10px; font-size: 24px; }
+        .description { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
+        
+        /* 検索エリア */
+        .search-box { position: sticky; top: 10px; z-index: 100; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box; }
+        input[type="text"], textarea { width: 90%; padding: 15px; font-size: 16px; border: 2px solid #dfe6e9; border-radius: 10px; outline: none; transition: border-color 0.3s; }
+        input[type="text"]:focus, textarea:focus { border-color: #3498db; }
+        
+        .options { margin-top: 15px; display: flex; justify-content: center; gap: 20px; font-size: 14px; color: #555; }
+        .checkbox-label { display: flex; align-items: center; cursor: pointer; user-select: none; }
+        .checkbox-label input { margin-right: 8px; transform: scale(1.2); cursor: pointer; }
 
+        .result-count { margin-top: 15px; font-size: 14px; color: #95a5a6; }
+        .result-area { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; width: 100%; }
+        
+        /* カードデザイン */
+        .group-card { background: white; border-radius: 12px; padding: 20px; text-align: left; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 4px solid #3498db; transition: transform 0.2s; position: relative; }
+        .group-card:hover { transform: translateY(-3px); }
+        .match-perfect { border-top-color: #27ae60; }
+        .match-near { border-top-color: #f39c12; opacity: 0.9; }
+
+        .group-name { display: block; font-size: 12px; color: #3498db; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+        .match-perfect .group-name { color: #27ae60; }
+        .match-near .group-name { color: #e67e22; }
+
+        .word-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .word-item { background: #ebf5fb; color: #2980b9; padding: 4px 12px; border-radius: 6px; font-size: 18px; font-weight: bold; }
+        
+        /* ▼▼▼ 追加したスタイル（ハイライト） ▼▼▼ */
+        .highlight { color: #e74c3c; font-weight: 900; text-decoration: underline; }
+        /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
+
+        .badge { position: absolute; top: 10px; right: 10px; font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; font-weight: bold; }
+        .badge-perfect { background: #27ae60; }
+        .badge-near { background: #f39c12; }
+        .missing-info { font-size: 11px; color: #e67e22; margin-top: 8px; font-style: italic; }
+        .no-result { grid-column: 1 / -1; padding: 50px; color: #bdc3c7; font-size: 18px; }
+
+        /* 管理画面エリア */
+        .manage-toggle { margin-top: 20px; cursor: pointer; color: #3498db; text-decoration: underline; font-size: 14px; user-select: none; }
+        .manage-area { display: none; margin-top: 20px; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 12px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-add { background-color: #27ae60; width: 100%; font-size: 16px; }
+        .btn-delete { background-color: #e74c3c; padding: 5px 10px; font-size: 12px; margin-left: 10px; }
+        .btn-reset { background-color: #95a5a6; margin-top: 20px; font-size: 12px; }
+        
+        .data-list { max-height: 300px; overflow-y: auto; text-align: left; border-top: 1px solid #eee; margin-top: 15px; padding-top: 15px; }
+        .data-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
+        .data-content { font-size: 14px; }
+        .data-sub { font-size: 11px; color: #888; display: block; margin-top: 2px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>語群検索システム</h1>
+    <p class="description">入力した単語の「すべての文字」を含んでいる語群を表示します</p>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="ひらがなorアルファベットを入力" oninput="search()">
+        
+        <div class="options">
+            <label class="checkbox-label">
+                <input type="checkbox" id="looseMode" onchange="search()">
+                濁音・半濁音・拗音を区別しない（が＝か、っ＝つ）
+            </label>
+        </div>
+
+        <div id="resultCount" class="result-count">文字を入力してください</div>
+    </div>
+
+    <div id="toggleBtn" class="manage-toggle" onclick="toggleManageArea()">▼ 語群の登録・編集を開く</div>
+
+    <div id="manageArea" class="manage-area">
+        <h3>新しい語群を追加</h3>
+        <div class="input-group">
+            <label>語群名（ジャンル）</label>
+            <input type="text" id="newGroupName" placeholder="例：四季">
+        </div>
+        <div class="input-group">
+            <label>単語（スペースか読点「、」で区切る）</label>
+            <textarea id="newGroupWords" rows="3" placeholder="例：はる なつ あき ふゆ"></textarea>
+        </div>
+        <button class="btn btn-add" onclick="addNewGroup()">追加する</button>
+
+        <h3>登録済みリスト (<span id="dataCount">0</span>件)</h3>
+        <div id="dataList" class="data-list">
+            </div>
+        
+        <button class="btn btn-reset" onclick="resetData()">初期データに戻す</button>
+    </div>
+
+    <div id="resultArea" class="result-area"></div>
+</div>
+
+<script>
+    // デフォルトデータ（初期状態）
+    const defaultData = [
+        // 必要に応じてここにデータを貼り付けてください
+        { "groupName": "四季", "words": ["はる", "なつ", "あき", "ふゆ"] }
+    ];
+
+    // アプリケーションで使用するデータ
     let appData = [];
 
     // 起動時の処理
     window.onload = function() {
         loadData();
+        search(); // 初回検索（もし入力があれば）
     };
 
-    // データの読み込み（GASから取得）
-    async function loadData() {
-        const countEl = document.getElementById('dataCount');
-        const listEl = document.getElementById('dataList');
-        
-        listEl.innerHTML = "<div>読み込み中...</div>";
-
-        try {
-            const response = await fetch(GAS_URL);
-            appData = await response.json();
-            
-            updateManageList();
-            search(); // 検索実行
-        } catch (error) {
-            alert("データの読み込みに失敗しました。" + error);
-            listEl.innerHTML = "<div>エラーが発生しました</div>";
+    // データの読み込み（Local Storage -> 変数）
+    function loadData() {
+        const storedData = localStorage.getItem('wordSearchData');
+        if (storedData) {
+            appData = JSON.parse(storedData);
+        } else {
+            // 保存データがない場合はデフォルトデータを使用
+            appData = JSON.parse(JSON.stringify(defaultData));
         }
+        updateManageList();
     }
 
-    // データの追加（GASへ送信）
-    async function addNewGroup() {
+    // データの保存（変数 -> Local Storage）
+    function saveData() {
+        localStorage.setItem('wordSearchData', JSON.stringify(appData));
+        updateManageList();
+        search(); // 保存したら検索結果も更新
+        alert("保存しました！");
+    }
+
+    // 新しいグループを追加
+    function addNewGroup() {
         const name = document.getElementById('newGroupName').value.trim();
         const wordsStr = document.getElementById('newGroupWords').value.trim();
 
@@ -39,61 +150,42 @@
             return;
         }
 
+        // 全角スペースや読点を区切り文字として配列化
         const words = wordsStr.split(/[\s,、]+/).filter(w => w.length > 0);
-        const btn = document.querySelector('.btn-add');
 
-        // ボタンを無効化（連打防止）
-        btn.disabled = true;
-        btn.innerText = "送信中...";
+        if (words.length === 0) {
+            alert("有効な単語がありません");
+            return;
+        }
 
-        try {
-            // GASにデータを送る
-            // ※GASの仕様上、CORS対策でno-corsモードにする方法もありますが、
-            // 今回は戻り値を受け取るために標準的なPOSTを行います。
-            // (GAS側でredirect対応が必要な場合がありますが、まずはシンプルに投げます)
-            
-            const postData = {
-                groupName: name,
-                words: words
-            };
+        // データ追加
+        appData.push({
+            groupName: name,
+            words: words
+        });
 
-            // 特殊な送信方法（GASの仕様に合わせる）
-            await fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify(postData)
-            });
+        // フォームをクリア
+        document.getElementById('newGroupName').value = "";
+        document.getElementById('newGroupWords').value = "";
 
-            // 送信成功したら、画面上にも即座に反映（再読み込みを待つと遅いので）
-            appData.push(postData);
-            updateManageList();
-            search();
+        saveData();
+    }
 
-            // フォームクリア
-            document.getElementById('newGroupName').value = "";
-            document.getElementById('newGroupWords').value = "";
-            alert("追加しました！");
-
-        } catch (error) {
-            alert("送信に失敗しました。" + error);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "追加する";
+    // グループの削除
+    function deleteGroup(index) {
+        if (confirm("この語群を削除しますか？")) {
+            appData.splice(index, 1);
+            saveData();
         }
     }
 
-    // ★削除機能について★
-    // 今回の実装では「追加」と「読み込み」のみ対応しています。
-    // 削除機能を作るには「ID管理」など複雑になるため、
-    // 削除したい場合は「スプレッドシートを直接編集」して行を消してください。
-    function deleteGroup(index) {
-        alert("削除はスプレッドシートを直接編集して行ってください。\n（行を削除して、画面をリロードすると反映されます）");
-    }
-
+    // 初期化
     function resetData() {
-        alert("リセット機能はこのモードでは使用できません。スプレッドシートを管理してください。");
+        if (confirm("全ての登録データを削除し、初期状態に戻しますか？")) {
+            appData = JSON.parse(JSON.stringify(defaultData));
+            saveData();
+        }
     }
-
-    // --- 以下は前回のコードと同じ ---
 
     // 管理画面のリスト更新
     function updateManageList() {
@@ -103,7 +195,10 @@
         listEl.innerHTML = "";
         countEl.innerText = appData.length;
 
+        // 新しいものが上に来るように逆順で表示
         appData.slice().reverse().forEach((group, revIndex) => {
+            const realIndex = appData.length - 1 - revIndex;
+            
             const div = document.createElement('div');
             div.className = 'data-item';
             div.innerHTML = `
@@ -111,15 +206,17 @@
                     <strong>${group.groupName}</strong>
                     <span class="data-sub">${group.words.join(' / ')}</span>
                 </div>
-                <button class="btn btn-delete" onclick="deleteGroup()">×</button>
+                <button class="btn btn-delete" onclick="deleteGroup(${realIndex})">削除</button>
             `;
             listEl.appendChild(div);
         });
     }
 
+    // 管理画面の表示切替
     function toggleManageArea() {
         const area = document.getElementById('manageArea');
         const btn = document.getElementById('toggleBtn');
+        
         if (area.style.display === 'block') {
             area.style.display = 'none';
             btn.innerText = '▼ 語群の登録・編集を開く';
@@ -129,6 +226,7 @@
         }
     }
 
+    // 文字の正規化（検索用）
     function normalizeString(str) {
         let res = str.normalize('NFD').replace(/[\u3099\u309A]/g, "");
         const smallToLarge = {
@@ -138,23 +236,30 @@
         return res.split('').map(char => smallToLarge[char] || char).join('');
     }
 
+    // ★★★ここが新機能★★★ ハイライト用のHTML生成関数
     function createHighlightedHtml(word, inputChars, looseMode) {
         let html = "";
         for (let char of word) {
             let isMatch = false;
+            
+            // 入力された文字の中に、この文字と一致するものがあるか確認
             for (let inputChar of inputChars) {
                 let c1 = char.toLowerCase();
                 let c2 = inputChar.toLowerCase();
+                
                 if (looseMode) {
                     c1 = normalizeString(c1);
                     c2 = normalizeString(c2);
                 }
+                
                 if (c1 === c2) {
                     isMatch = true;
                     break;
                 }
             }
+            
             if (isMatch) {
+                // マッチしたら<span>タグで囲んで赤くする
                 html += `<span class="highlight">${char}</span>`;
             } else {
                 html += char;
@@ -163,6 +268,7 @@
         return html;
     }
 
+    // 検索処理
     function search() {
         const input = document.getElementById('searchInput').value.trim();
         const resultArea = document.getElementById('resultArea');
@@ -182,13 +288,16 @@
 
         appData.forEach(group => {
             const combinedText = group.words.join("");
+            
             const missingChars = inputChars.filter(originalChar => {
                 let targetChar = originalChar.toLowerCase();
                 let targetTextToSearch = combinedText.toLowerCase();
+
                 if (looseMode) {
                     targetChar = normalizeString(targetChar);
                     targetTextToSearch = normalizeString(targetTextToSearch);
                 }
+                
                 return !targetTextToSearch.includes(targetChar);
             });
             
@@ -199,6 +308,7 @@
             }
         });
 
+        // ソート：単語数が少ない順
         perfectMatches.sort((a, b) => a.group.words.length - b.group.words.length);
         nearMatches.sort((a, b) => a.group.words.length - b.group.words.length);
 
@@ -212,6 +322,7 @@
             const badgeClass = isPerfect ? 'badge-perfect' : 'badge-near';
             const badgeText = isPerfect ? '揃いました！' : 'あと1文字！';
             
+            // ★ハイライト処理を適用して単語リストを表示★
             const wordsHtml = group.words.map(w => {
                 const highlighted = createHighlightedHtml(w, inputChars, looseMode);
                 return `<span class="word-item">${highlighted}</span>`;
@@ -238,3 +349,6 @@
         }
     }
 </script>
+
+</body>
+</html>
